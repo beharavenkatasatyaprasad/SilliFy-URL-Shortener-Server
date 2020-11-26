@@ -333,7 +333,7 @@ app.get("/auth0/:token", (req, res) => {
                     });
                 }
                 if (result) {
-                    res.redirect('http://127.0.0.1:5500/newpassword.html');
+                    res.redirect('https://sillyfy.netlify.app/newpassword.html');
                 }
             });
         }
@@ -371,7 +371,7 @@ app.get("/auth/:token", (req, res) => {
                     });
                 }
                 if (result) {
-                    res.redirect('http://127.0.0.1:5500/newpassword.html');
+                    res.redirect('https://sillyfy.netlify.app/confirmation.html');
                 }
             });
         }
