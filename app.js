@@ -11,6 +11,7 @@ const cors = require('cors'); //middleware that can be used to enable CORS with 
 app.options('*', cors())
 
 const port = process.env.PORT || 3000;
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -55,7 +56,7 @@ app.post("/register", async (req, res) => {
         if (err) {
             return res.json({
                 message: 'something went wrong',
-                type: 'danger'
+                type_: 'danger'
             });
         }
         if (result == null) {
@@ -68,7 +69,7 @@ app.post("/register", async (req, res) => {
                     if (err) {
                         return res.json({
                             message: 'something went wrong',
-                            type: 'danger'
+                            type_: 'danger'
                         });
                     }
                     if (result) {
@@ -76,6 +77,7 @@ app.post("/register", async (req, res) => {
                             exp: Math.floor(Date.now() / 1000) + (60 * 60),
                             email: email
                         }, 'secret');
+
                         let url = `http://localhost:3000/auth/${emailToken}`
                         let name = `${email.split('@')[0]}`
                         //email template for sending token
@@ -83,7 +85,7 @@ app.post("/register", async (req, res) => {
                             from: '"Lets SillyFy 👻" <noreply@SillyFy.com>',
                             to: `${email}`,
                             subject: 'Account Confirmation Link',
-                            html: `Hello ${name} , Here's your password reset link: <br> <a style="color:green" href="${url}">Click Here To Reset</a> <br> Link expires in an hour...`
+                            html: `Hello ${name} , Here's your Account verification link: <br> <a style="color:green" href="${url}">Click Here To Confirm</a> <br> Link expires in an hour...`
                         };
                         transporter.sendMail(mailOptions, function (error, info) {
                             if (error) {
@@ -91,17 +93,17 @@ app.post("/register", async (req, res) => {
                             } else {
                                 return res.json({
                                     message: 'Check your mail and Confirm Identity...',
-                                    type: 'success'
+                                    type_: 'success'
                                 }); //* if mail sent send this msg
                             }
                         });
                     }
-                }); 
+                });
             });
         } else {
             return res.json({
                 message: 'email already exists!!',
-                type: 'warning'
+                type_: 'warning'
             });
         }
     })
@@ -125,53 +127,84 @@ app.post("/login", async (req, res) => {
         if (err) {
             return res.json({
                 message: 'something went wrong',
-                type: 'danger'
+                type_: 'danger'
             });
         }
         if (User == null) {
             return res.json({
                 message: 'No user found !!',
-                type: 'warning'
+                type_: 'warning'
             });
         } else {
             if (User.confirmed == true) {
-                bcrypt.compare(password, users.password, function (err, result) { //* if found compare the & check passworded match or not
+                bcrypt.compare(password, User.password, function (err, result) { //* if found compare the & check passworded match or not
                     if (err) {
                         return res.json({
                             message: 'Something went wrong..',
-                            type: 'danger'
+                            type_: 'danger'
                         })
                     }
                     if (result == true) { //if matched 
                         let token = uid(16) //*assign a random token
                         return res.json({
                             token: token,
-                            message: 'Loging in..',
-                            type: 'success'
+                            message: 'Logging in..',
+                            type_: 'success'
                         })
                     } else {
                         return res.json({
                             message: 'Invalid Credentials..',
-                            type: 'warning'
+                            type_: 'warning'
                         })
                     }
                 })
             } else {
                 return res.json({
-                    message: 'Invalid Credentials..',
-                    type: 'warning'
+                    message: 'User Identity not Confirmed..',
+                    type_: 'warning'
                 })
             }
-
         }
-
     })
 
 });
 
-
-
-
+app.get("/auth/:token", (req, res) => {
+    const token = req.params.token
+    jwt.verify(token, 'secret', async function (err, decoded) {
+        if (decoded) {
+            let client = await mongoClient.connect(url, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            });
+            let db = client.db("SilliFy"); //db name
+            let user = db.collection("users"); //collection name
+            user.findOneAndUpdate({
+                email: decoded.email
+            }, {
+                $set: {
+                    confirmed: true //and set the new hashed password in the db
+                }
+            }, (err, result) => {
+                if (err) {
+                    return res.json({
+                        message: err,
+                        type_: 'danger'
+                    });
+                }
+                if (result) {
+                    res.redirect('http://127.0.0.1:5500/confirmation.html');
+                }
+            });
+        }
+        if (err) {
+            return res.json({
+                message: err,
+                type_: 'danger'
+            }); //if the token expired send this status
+        }
+    });
+});
 
 
 app.listen(port, () => `Server running on port ${port} 🔥`);
