@@ -79,7 +79,7 @@ app.post("/register", async (req, res) => {
                             email: email
                         }, 'secret');
 
-                        let url = `http://localhost:3000/auth/${emailToken}`
+                        let url = `https://sillyfy.herokuapp.com/auth/${emailToken}`
                         let name = `${email.split('@')[0]}`
                         //email template for sending token
                         var mailOptions = {
@@ -205,7 +205,7 @@ app.post("/resetpassword", cors(), async (req, res) => {
                     confirmed: false
                 }
             });
-            let url = `http://localhost:3000/auth0/${emailToken}`
+            let url = `https://sillyfy.herokuapp.com/auth0/${emailToken}`
             let name = `${email.split('@')[0]}`
             //email template for sending token
             var mailOptions = {
