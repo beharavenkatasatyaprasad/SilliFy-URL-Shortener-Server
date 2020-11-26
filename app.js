@@ -386,4 +386,4 @@ app.get("/auth/:token", (req, res) => {
 });
 
 
-app.listen(process.env.port || 3000, () => `Server live..`);
+app.listen(process.env.PORT  || 3000, () => `Server live..`);
