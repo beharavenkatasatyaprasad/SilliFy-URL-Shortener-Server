@@ -36,7 +36,8 @@ mongoClient.connect(url, {
 });
 
 app.get("/", (req, res) => {
-    res.send('hello from server')
+    res.send('hello from server');
+    console.log("hello!");
 });
 
 app.post("/register", async (req, res) => {
