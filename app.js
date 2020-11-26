@@ -132,7 +132,7 @@ app.post("/login", async (req, res) => {
         }
         if (User == null) {
             return res.json({
-                message: 'No user found !!',
+                message: 'No registered user found with '+ email,
                 type_: 'warning'
             });
         } else {
@@ -169,6 +169,184 @@ app.post("/login", async (req, res) => {
 
 });
 
+
+//Endpoint for resetting password
+app.post("/resetpassword", cors(), async (req, res) => {
+    const {
+        email
+    } = req.body //email from client
+    let client = await mongoClient.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }); //connect to db
+    let db = client.db("SilliFy"); //db name
+    let user = db.collection("users"); //collection name
+    user.findOne({ //find if the email exist in the collection
+        email: email
+    }, (err, users) => {
+        if (users == null) {
+            return res.json({
+                message: 'No registered user found with ' + email,
+                type_: 'warning'
+            }); //! if not found send this status
+        } else { //if found 
+            // let token = uid(5);
+            let emailToken = jwt.sign({
+                email: email
+            }, 'secret', {
+                expiresIn: '10m'
+            });
+
+            user.findOneAndUpdate({
+                email: email
+            }, {
+                $set: {
+                    confirmed: false
+                }
+            });
+            let url = `http://localhost:3000/auth0/${emailToken}`
+            let name = `${email.split('@')[0]}`
+            //email template for sending token
+            var mailOptions = {
+                from: '"Lets SillyFy 👻" <noreply@SillyFy.com>',
+                to: `${email}`,
+                subject: 'Password Reset Link',
+                html: `Hello ${name} ,<br> Here's your password reset link: <a style="color:green" href="${url}">Click Here To Reset</a> Link expires in 10 minutes...`
+            };
+
+            //Send the mail
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    return res.json({
+                        message: error,
+                        type_: 'danger'
+                    });
+                } else {
+                    return res.json({
+                        message: 'Check your mail and Confirm Identity...',
+                        type_: 'success'
+                    }); //* if mail sent send this msg
+                }
+            });
+        }
+        if (err) {
+            return res.json({
+                message: err,
+                type_: 'danger'
+            }); //! if found any error send this status
+        }
+    })
+});
+
+app.post('/newpassword', cors(), async (req, res) => {
+    const {
+        password,
+        email
+    } = req.body; //email & newpassword from client
+    let client = await mongoClient.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }); //connect to db
+    let db = client.db("SilliFy"); //db name
+    let user = db.collection("users"); //collection name
+    user.findOne({
+        email: email
+    }, (err, User) => {
+        if (err) {
+            return res.json({
+                message: 'Something Went Wrong',
+                type_: 'warning'
+            });
+        }
+        if (User == null) {
+            return res.json({
+                message: 'No registered user found with ' + email,
+                type_: 'warning'
+            }); //! if not found send this status
+        } else {
+            //find if the token exists in the collection
+            if (User.confirmed == true) {
+                bcrypt.hash(password, saltRounds, function (err, hash) { //hash the new password
+                    if (err) {
+                        return res.json({
+                            message: err,
+                            type_: 'danger'
+                        });
+                    } else {
+                        user.findOneAndUpdate({
+                            email: email
+                        }, {
+                            $set: {
+                                password: hash //and set the new hashed password in the db
+                            }
+                        }, (err, result) => {
+                            if (err) {
+                                return res.json({
+                                    message: err,
+                                    type_: 'danger'
+                                });
+                            }
+                            if (result) {
+                                return res.json({
+                                    message: 'Password Reset Successfull',
+                                    type_: 'success'
+                                });
+                            }
+                        });
+                    }
+
+                })
+            } 
+            else {
+                return res.json({
+                    message: 'Unauthorized Request',
+                    type_: 'danger'
+                });
+            }
+        }
+    })
+
+})
+
+//for password reset auth
+app.get("/auth0/:token", (req, res) => {
+    const token = req.params.token
+    jwt.verify(token, 'secret', async function (err, decoded) {
+        if (decoded) {
+            let client = await mongoClient.connect(url, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            });
+            let db = client.db("SilliFy"); //db name
+            let user = db.collection("users"); //collection name
+            user.findOneAndUpdate({
+                email: decoded.email
+            }, {
+                $set: {
+                    confirmed: true
+                }
+            }, (err, result) => {
+                if (err) {
+                    return res.json({
+                        message: err,
+                        type_: 'danger'
+                    });
+                }
+                if (result) {
+                    res.redirect('http://127.0.0.1:5500/newpassword.html');
+                }
+            });
+        }
+        if (err) {
+            return res.json({
+                message: err,
+                type_: 'danger'
+            }); //if the token expired send this status
+        }
+    });
+});
+
+//for account auth
 app.get("/auth/:token", (req, res) => {
     const token = req.params.token
     jwt.verify(token, 'secret', async function (err, decoded) {
@@ -193,7 +371,7 @@ app.get("/auth/:token", (req, res) => {
                     });
                 }
                 if (result) {
-                    res.redirect('http://127.0.0.1:5500/confirmation.html');
+                    res.redirect('http://127.0.0.1:5500/newpassword.html');
                 }
             });
         }
