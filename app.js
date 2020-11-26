@@ -10,7 +10,7 @@ const mongodb = require('mongodb'); //MongoDB driver
 const cors = require('cors'); //middleware that can be used to enable CORS with various options
 app.options('*', cors())
 
-const port = process.env.PORT || 3000;
+// const port = ;
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -385,4 +385,4 @@ app.get("/auth/:token", (req, res) => {
 });
 
 
-app.listen(port, () => `Server running on port ${port} 🔥`);
+app.listen(process.env.port || 3000, () => `Server running on port `);
