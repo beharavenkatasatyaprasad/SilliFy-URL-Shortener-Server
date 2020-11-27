@@ -29,7 +29,7 @@ const url = "mongodb+srv://satyabehara:ftjrbtc9S1@cluster0.u3j3r.mongodb.net/Sil
 mongoClient.connect(url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-}, function (err, db) {
+}, function(err, db) {
     if (err) throw err;
     console.log("Database Connected!");
     db.close();
@@ -40,7 +40,7 @@ app.get("/", (req, res) => {
     console.log("hello!");
 });
 
-app.post("/register", async (req, res) => {
+app.post("/register", async(req, res) => {
     const {
         email,
         password
@@ -61,34 +61,35 @@ app.post("/register", async (req, res) => {
             });
         }
         if (result == null) {
-            bcrypt.hash(password, saltRounds, function (err, hash) { //hash the client password
+            bcrypt.hash(password, saltRounds, function(err, hash) { //hash the client password
+                if (err) {
+                    return res.json({
+                        message: 'something went wrong',
+                        type_: 'danger'
+                    });
+                }
                 user.insertOne({
                     email: email,
                     password: hash,
                     confirmed: false
                 }, (err, result) => {
-                    if (err) {
-                        return res.json({
-                            message: 'something went wrong',
-                            type_: 'danger'
-                        });
-                    }
+
                     if (result) {
                         let emailToken = jwt.sign({
                             exp: Math.floor(Date.now() / 1000) + (60 * 60),
                             email: email
                         }, 'secret');
 
-                        let url = `https://sillyfy.herokuapp.com/auth/${emailToken}`
+                        let url = `http://localhost:3000/auth/${emailToken}`
                         let name = `${email.split('@')[0]}`
-                        //email template for sending token
+                            //email template for sending token
                         var mailOptions = {
                             from: '"Lets SillyFy 👻" <noreply@SillyFy.com>',
                             to: `${email}`,
                             subject: 'Account Confirmation Link',
                             html: `Hello ${name} , Here's your Account verification link: <br> <a style="color:green" href="${url}">Click Here To Confirm</a> <br> Link expires in an hour...`
                         };
-                        transporter.sendMail(mailOptions, function (error, info) {
+                        transporter.sendMail(mailOptions, function(error, info) {
                             if (error) {
                                 console.log(error)
                             } else {
@@ -111,7 +112,7 @@ app.post("/register", async (req, res) => {
 
 });
 
-app.post("/login", async (req, res) => {
+app.post("/login", async(req, res) => {
     const {
         email,
         password
@@ -133,12 +134,12 @@ app.post("/login", async (req, res) => {
         }
         if (User == null) {
             return res.json({
-                message: 'No registered user found with '+ email,
+                message: 'No registered user found with ' + email,
                 type_: 'warning'
             });
         } else {
             if (User.confirmed == true) {
-                bcrypt.compare(password, User.password, function (err, result) { //* if found compare the & check passworded match or not
+                bcrypt.compare(password, User.password, function(err, result) { //* if found compare the & check passworded match or not
                     if (err) {
                         return res.json({
                             message: 'Something went wrong..',
@@ -147,7 +148,15 @@ app.post("/login", async (req, res) => {
                     }
                     if (result == true) { //if matched 
                         let token = uid(16) //*assign a random token
+                        user.findOneAndUpdate({
+                            email: User.email
+                        }, {
+                            $set: {
+                                token: token
+                            }
+                        });
                         return res.json({
+                            user: User.email,
                             token: token,
                             message: 'Logging in..',
                             type_: 'success'
@@ -167,12 +176,11 @@ app.post("/login", async (req, res) => {
             }
         }
     })
-
 });
 
 
 //Endpoint for resetting password
-app.post("/resetpassword", cors(), async (req, res) => {
+app.post("/resetpassword", cors(), async(req, res) => {
     const {
         email
     } = req.body //email from client
@@ -197,7 +205,6 @@ app.post("/resetpassword", cors(), async (req, res) => {
             }, 'secret', {
                 expiresIn: '10m'
             });
-
             user.findOneAndUpdate({
                 email: email
             }, {
@@ -205,9 +212,9 @@ app.post("/resetpassword", cors(), async (req, res) => {
                     confirmed: false
                 }
             });
-            let url = `https://sillyfy.herokuapp.com/auth0/${emailToken}`
+            let url = `http://localhost:3000/auth0/${emailToken}`
             let name = `${email.split('@')[0]}`
-            //email template for sending token
+                //email template for sending token
             var mailOptions = {
                 from: '"Lets SillyFy 👻" <noreply@SillyFy.com>',
                 to: `${email}`,
@@ -216,7 +223,7 @@ app.post("/resetpassword", cors(), async (req, res) => {
             };
 
             //Send the mail
-            transporter.sendMail(mailOptions, function (error, info) {
+            transporter.sendMail(mailOptions, function(error, info) {
                 if (error) {
                     return res.json({
                         message: error,
@@ -239,7 +246,7 @@ app.post("/resetpassword", cors(), async (req, res) => {
     })
 });
 
-app.post('/newpassword', cors(), async (req, res) => {
+app.post('/newpassword', cors(), async(req, res) => {
     const {
         password,
         email
@@ -267,7 +274,7 @@ app.post('/newpassword', cors(), async (req, res) => {
         } else {
             //find if the token exists in the collection
             if (User.confirmed == true) {
-                bcrypt.hash(password, saltRounds, function (err, hash) { //hash the new password
+                bcrypt.hash(password, saltRounds, function(err, hash) { //hash the new password
                     if (err) {
                         return res.json({
                             message: err,
@@ -297,8 +304,7 @@ app.post('/newpassword', cors(), async (req, res) => {
                     }
 
                 })
-            } 
-            else {
+            } else {
                 return res.json({
                     message: 'Unauthorized Request',
                     type_: 'danger'
@@ -312,7 +318,7 @@ app.post('/newpassword', cors(), async (req, res) => {
 //for password reset auth
 app.get("/auth0/:token", (req, res) => {
     const token = req.params.token
-    jwt.verify(token, 'secret', async function (err, decoded) {
+    jwt.verify(token, 'secret', async function(err, decoded) {
         if (decoded) {
             let client = await mongoClient.connect(url, {
                 useNewUrlParser: true,
@@ -334,7 +340,7 @@ app.get("/auth0/:token", (req, res) => {
                     });
                 }
                 if (result) {
-                    res.redirect('https://sillyfy.netlify.app/newpassword.html');
+                    res.redirect('http://127.0.0.1:5500/Auth/newpassword.html');
                 }
             });
         }
@@ -350,7 +356,7 @@ app.get("/auth0/:token", (req, res) => {
 //for account auth
 app.get("/auth/:token", (req, res) => {
     const token = req.params.token
-    jwt.verify(token, 'secret', async function (err, decoded) {
+    jwt.verify(token, 'secret', async function(err, decoded) {
         if (decoded) {
             let client = await mongoClient.connect(url, {
                 useNewUrlParser: true,
@@ -372,7 +378,7 @@ app.get("/auth/:token", (req, res) => {
                     });
                 }
                 if (result) {
-                    res.redirect('https://sillyfy.netlify.app/confirmation.html');
+                    res.redirect('http://127.0.0.1:5500//Auth/confirmation.html');
                 }
             });
         }
@@ -385,5 +391,60 @@ app.get("/auth/:token", (req, res) => {
     });
 });
 
+app.post("/sillyFy", async(req, res) => {
+    const {
+        req_by,
+        longLink
+    } = req.body;
+    let client = await mongoClient.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }); //connect to db
+    let db = client.db("SilliFy"); //db name
+    let links = db.collection("links"); //collection name
+    const token = uid(5);
+    let d = new Date();
+    let date = d.getDate() + '-' + d.getMonth() + '-' + d.getFullYear();
+    links.insertOne({
+        longLink: longLink,
+        shortLink: token,
+        requestedBy: req_by,
+        issuedOn: date
+    }, (err, result) => {
+        if (err) {
+            return res.json({
+                type_: 'danger',
+                message: err
+            });
+        }
+        if (result) {
+            let shortlink = `http://localhost:3000/fy/${token}`
+            return res.json({
+                type_: 'success',
+                message: 'Got Sillified..',
+                shortLink: shortlink,
+                date: date,
+                longLink: longLink
+            });
+        }
+    });
+});
 
-app.listen(process.env.PORT  || 3000, () => `Server live..`);
+app.post("/MyLinks", async(req, res) => {
+    const { user } = req.body
+    let client = await mongoClient.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }); //connect to db
+    let db = client.db("SilliFy"); //db name
+    let links = db.collection("links"); //collection name
+    links.find({ requestedBy: user }).toArray((err, result) => {
+        if (result) {
+            return res.json({ result });
+        }
+    });
+});
+
+app.listen(process.env.PORT || 3000, () => {
+    console.log('hello')
+})
