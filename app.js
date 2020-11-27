@@ -80,7 +80,7 @@ app.post("/register", async(req, res) => {
                             email: email
                         }, 'secret');
 
-                        let url = `http://localhost:3000/auth/${emailToken}`
+                        let url = `https://sillyfy.netlify.app/auth/${emailToken}`
                         let name = `${email.split('@')[0]}`
                             //email template for sending token
                         var mailOptions = {
@@ -212,7 +212,7 @@ app.post("/resetpassword", cors(), async(req, res) => {
                     confirmed: false
                 }
             });
-            let url = `http://localhost:3000/auth0/${emailToken}`
+            let url = `https://sillyfy.netlify.app/auth0/${emailToken}`
             let name = `${email.split('@')[0]}`
                 //email template for sending token
             var mailOptions = {
@@ -418,7 +418,7 @@ app.post("/sillyFy", async(req, res) => {
             });
         }
         if (result) {
-            let shortlink = `http://localhost:3000/fy/${token}`
+            let shortlink = `https://sillyfy.netlify.app/fy/${token}`
             return res.json({
                 type_: 'success',
                 message: 'Got Sillified..',
@@ -440,11 +440,28 @@ app.post("/MyLinks", async(req, res) => {
     let links = db.collection("links"); //collection name
     links.find({ requestedBy: user }).toArray((err, result) => {
         if (result) {
-            return res.json({ result });
+            return res.json({ result })
+        }
+    });
+});
+
+app.get("/fy/:token", async(req, res) => {
+    const { token } = req.params
+    let client = await mongoClient.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }); //connect to db
+    let db = client.db("SilliFy"); //db name
+    let links = db.collection("links"); //collection name
+    links.findOne({ shortLink: token }, (err, result) => {
+        if (result != null) {
+            res.redirect(result.longLink);
         }
     });
 });
 
 app.listen(process.env.PORT || 3000, () => {
-    console.log('hello')
+    console.log('Server is live.. 🔥')
 })
+
+const port = process.env.PORT || 5000;
