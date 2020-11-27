@@ -80,7 +80,7 @@ app.post("/register", async(req, res) => {
                             email: email
                         }, 'secret');
 
-                        let url = `https://sillyfy.netlify.app/auth/${emailToken}`
+                        let url = `https://sillyfy.herokuapp.com/auth/${emailToken}`
                         let name = `${email.split('@')[0]}`
                             //email template for sending token
                         var mailOptions = {
@@ -212,7 +212,7 @@ app.post("/resetpassword", cors(), async(req, res) => {
                     confirmed: false
                 }
             });
-            let url = `https://sillyfy.netlify.app/auth0/${emailToken}`
+            let url = `https://sillyfy.herokuapp.com/auth0/${emailToken}`
             let name = `${email.split('@')[0]}`
                 //email template for sending token
             var mailOptions = {
@@ -340,7 +340,7 @@ app.get("/auth0/:token", (req, res) => {
                     });
                 }
                 if (result) {
-                    res.redirect('http://127.0.0.1:5500/Auth/newpassword.html');
+                    res.redirect('https://sillyfy.netlify.app/Auth/newpassword.html');
                 }
             });
         }
@@ -378,7 +378,7 @@ app.get("/auth/:token", (req, res) => {
                     });
                 }
                 if (result) {
-                    res.redirect('http://127.0.0.1:5500//Auth/confirmation.html');
+                    res.redirect('https://sillyfy.netlify.app/Auth/confirmation.html');
                 }
             });
         }
@@ -463,5 +463,3 @@ app.get("/fy/:token", async(req, res) => {
 app.listen(process.env.PORT || 3000, () => {
     console.log('Server is live.. 🔥')
 })
-
-const port = process.env.PORT || 5000;
