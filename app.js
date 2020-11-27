@@ -418,7 +418,7 @@ app.post("/sillyFy", async(req, res) => {
             });
         }
         if (result) {
-            let shortlink = `https://sillyfy.netlify.app/fy/${token}`
+            let shortlink = `https://sillyfy.herokuapp.com/fy/${token}`
             return res.json({
                 type_: 'success',
                 message: 'Got Sillified..',
