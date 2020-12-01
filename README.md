@@ -8,7 +8,7 @@
 
 ## 🚀 Getting started
 
-This project is deployed on <a href="https://sillyfy.herokuapp.com/" target="_blank">herokuapp</a>
+This project is deployed on <a href="https://sillyfy.herokuapp.com/" target="_blank">heroku</a>
 
 ### Languages and Tools used:
 
