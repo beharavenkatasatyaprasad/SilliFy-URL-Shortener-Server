@@ -511,5 +511,5 @@ app.get("/fy/:token", async (req, res) => {
 });
 
 app.listen(process.env.PORT || 3000, () => {
-    console.log('Server is live.. 🔥')
+    console.log('Server is live..')
 })
