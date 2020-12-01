@@ -10,11 +10,11 @@ const nodemailer = require("nodemailer"); //end e-mails
 require('dotenv').config()
 const mongodb = require('mongodb'); //MongoDB driver 
 const cors = require('cors'); //middleware that can be used to enable CORS with various options
-const port = true;
+app.proxy = true
 const mongoClient = mongodb.MongoClient;
 const url = process.env.MONGODB_URL;
 
-const allowedOrigins = ['https://sillyfy.netlify.app', 'https://sillyfy.netlify.app/index.html', 'https://sillyfy.netlify.app/auth/resetpassword.html', 'https://sillyfy.netlify.app/auth/newpassword.html', 'https://password-reset-flow-ui.netlify.app/signup.html', 'https://sillyfy.netlify.app/user/home.html', 'https://sillyfy.netlify.app/user/mylinks.html']
+const allowedOrigins = ['https://sillyfy.netlify.app', 'https://sillyfy.netlify.app/index.html', 'https://sillyfy.netlify.app/auth/resetpassword.html', 'https://sillyfy.netlify.app/auth/newpassword.html', 'https://password-reset-flow-ui.netlify.app/signup.html', 'https://sillyfy.netlify.app/user/home.html', 'https://sillyfy.netlify.app/user/mylinks.html' , 'https://sillyfy.netlify.app/admin.html','https://sillyfy.netlify.app/user/dashboard.html']
 app.use(cors({
     credentials: true,
     origin: (origin, callback) => {
@@ -50,6 +50,100 @@ mongoClient.connect(url, {
 app.get("/", (req, res) => {
     res.send('hello from server');
     console.log("hello!");
+});
+
+app.get("/getusers",async (req, res) => {
+    let client = await mongoClient.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }); //connect to db
+    let db = client.db("SilliFy"); //db name
+    let user = db.collection("users"); //collection name
+    user.find({}).toArray((err, result) => {
+        if (result) {
+            return res.json({
+                length: result.length
+            })
+        }
+    });
+});
+
+app.get("/getlinks",async (req, res) => {
+    let client = await mongoClient.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }); //connect to db
+    let db = client.db("SilliFy"); //db name
+    let links = db.collection("links"); //collection name
+    links.find({}).toArray((err, result) => {
+        if (result) {
+            return res.json({
+                length: result.length
+            })
+        }
+    });
+});
+
+app.post("/adminlogin",async (req, res) => {
+    const {
+        email,
+        password
+    } = req.body;
+    let client = await mongoClient.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }); //connect to db
+    let db = client.db("SilliFy"); //db name
+    let user = db.collection("users"); //collection name
+    user.findOne({
+        email: email
+    }, (err, User) => {
+        if (err) {
+            return res.json({
+                message: 'something went wrong',
+                type_: 'danger'
+            });
+        }
+        if (User == null) {
+            return res.json({
+                message: 'No registered user found with ' + email,
+                type_: 'warning'
+            });
+        } else {
+            if (User.confirmed == true) {
+                bcrypt.compare(password, User.password, function (err, result) { //* check credentials
+                    if (err) {
+                        return res.json({
+                            message: 'Something went wrong..',
+                            type_: 'danger'
+                        })
+                    }
+                    if (result == true) { //if matched 
+                        let token = jwt.sign({
+                            email: email
+                        }, process.env.JWT_SECRET, {
+                            expiresIn: '1h'
+                        }); //*assign a token
+                        res.cookie('jwt', token, {
+                            maxAge: 1000000,
+                            httpOnly: true,
+                            secure: true
+                        }).json({
+                            type_: "success",
+                            message: 'Logging in..',
+                            user: email
+                        })
+                    } 
+                    else {
+                        return res.json({
+                            message: 'Invalid Credentials..',
+                            type_: 'warning'
+                        })
+                    }
+                })
+            }
+        }
+    })
 });
 
 app.post("/register", async (req, res) => {
@@ -121,7 +215,6 @@ app.post("/register", async (req, res) => {
             });
         }
     })
-
 });
 
 app.post("/login", async (req, res) => {
