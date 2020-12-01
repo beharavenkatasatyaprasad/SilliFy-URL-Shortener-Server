@@ -1,5 +1,5 @@
 <a href="https://sillyfy.netlify.app/">
-    <img src="imgs/logo2.png" alt=""  align="right" height="60">
+    <img src="imgs/logo.png" alt=""  align="right" height="60">
 </a>
 
 # [SillyFy-URL-Shortener-Server](https://sillyfy.herokuapp.com/)
