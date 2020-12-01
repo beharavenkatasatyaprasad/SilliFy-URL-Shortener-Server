@@ -3,6 +3,7 @@ const app = express(); //initialize express
 const bodyParser = require('body-parser'); //body parsing middleware
 var jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser')
+const uid = require('rand-token').uid; // random token generator
 const bcrypt = require('bcryptjs'); //library to hash passwords
 const saltRounds = 10; //cost factor (controls how much time is needed to calculate a single BCrypt hash)
 const nodemailer = require("nodemailer"); //end e-mails
@@ -511,5 +512,5 @@ app.get("/fy/:token", async (req, res) => {
 });
 
 app.listen(process.env.PORT || 3000, () => {
-    console.log('Server is live..')
+    console.log('Server is live.. 🔥')
 })
