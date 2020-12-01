@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
-  },
   "author": "satyaprasadbehara",
   "license": "ISC",
   "dependencies": {
@@ -20,5 +16,12 @@
     "nodemailer": "^6.4.16"
   },
   "devDependencies": {
+    "nodemon": "^2.0.6"
   }
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  }
+ 
+
 }
