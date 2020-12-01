@@ -4,11 +4,11 @@
 
 # [SillyFy-URL-Shortener-Server](https://sillyfy.herokuapp.com/)
 
-*A URL Shortening API
+*A URL Shortening API connected to [SillyFy-URL-Shortener-UI](https://github.com/beharavenkatasatyaprasad/SillyFy-URL-Shortener-UI)*
 
 ## 🚀 Getting started
 
-This project is already deployed on <a href="https://sillyfy.herokuapp.com/" target="_blank">https://sillyfy.herokuapp.com/</a>
+This project is deployed on <a href="https://sillyfy.herokuapp.com/" target="_blank">herokuapp</a>
 
 Instructions for local deployment are given below:
 
