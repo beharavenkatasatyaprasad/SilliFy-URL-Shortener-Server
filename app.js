@@ -127,6 +127,7 @@ app.post("/adminlogin",async (req, res) => {
                         res.cookie('jwt', token, {
                             maxAge: 1000000,
                             httpOnly: true,
+                            sameSite: 'none',
                             secure: true
                         }).json({
                             type_: "success",
