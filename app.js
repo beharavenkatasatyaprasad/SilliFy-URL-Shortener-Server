@@ -125,7 +125,7 @@ app.post("/adminlogin",async (req, res) => {
                             expiresIn: '1h'
                         }); //*assign a token
                         res.cookie('jwt', token, {
-                            maxAge: 1000000,
+                            maxAge: 100000000000,
                             httpOnly: true,
                             sameSite: 'none',
                             secure: true
